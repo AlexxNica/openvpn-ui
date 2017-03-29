@@ -1,15 +1,13 @@
-var winston	=	require('winston');
+'use strict';
 
-var logger = new (winston.Logger)({
-	transports: [
-		new (winston.transports.Console)({ json: false, timestamp: true }),
-		new winston.transports.File({ filename: __dirname + '/../logs/debug.log', json: false })
-	],
-	exceptionHandlers: [
-		new (winston.transports.Console)({ json: false, timestamp: true }),
-		new winston.transports.File({ filename: __dirname + '/../logs/exceptions.log', json: false })
-	],
-	exitOnError: false
+const winston = require('winston');
+
+const logger = module.exports = new (winston.Logger)({
+  transports: [
+    new winston.transports.Console(),
+  ],
+  exceptionHandlers: [
+    new winston.transports.Console(),
+  ],
+  exitOnError: true
 });
-
-module.exports = logger;
