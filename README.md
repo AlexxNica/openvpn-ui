@@ -1,27 +1,26 @@
-Intro
----------------
+# OpenVPN PKI UI
 
-Used with [**Mini-SSO Google**][1], this UI allows to generate credentials for your OpenVPN instance.
+UI to generate client credentials for an OpenVPN server. Authentication middleware can be changed
+if not using Google's G Suite.
 
-You can change the **authentication middleware** if you are not using **Google Apps for Work**.
+## Installation
 
-Installation
----------------
+### Configuration
 
-- Fill ``config.yml`` as follow:
-  - ``listen``: **Port** and **address** for Express to bind to. Ensure to run  the app as a backend service with a **SSL-only** front end server.
-  - ``sso``: **SSO API endpoint** and **cookie name**, see [**Mini-SSO Google**][1].
-  - ``ca``: Path to your **Certificate Authority certificate** and **key**  files used by your [**OpenVPN instance**][2].
-  - ``ovpn``: The ``.ovpn`` client configuration that that will be sent along with the generated credentials. Ensure to **keep tokens** for CA/Cert/Key
+- Copy `config.yml.dist` to `config.yml`
+- `sso`: SSO API endpoint, cookie name, see [Mini-SSO Google][1].
+- `ca`: Path to your Certificate Authority certificate and key files used by [**OpenVPN instance**][2].
+- `ovpn`: The `.ovpn` client configuration that that will be sent along with the generated 
+  credentials. Ensure to *keep tokens* for CA/Cert/Key
 
+### Install Dependencies & Run
 
-- **Install dependencies with NPM**
+```
+npm install
+NODE_ENV=development PORT=3000 node server.js
+```
 
-``npm install``
+## References
 
-- **Run**
-
-``node server.js``
 [1]: https://github.com/ipernet/mini-sso-google
-
 [2]: https://openvpn.net/index.php/open-source/documentation/howto.html#pki
