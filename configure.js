@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Loads the system config file from yaml and validates it. This file contains blocking IO ops,
  * since it should only be loaded once during startup.
@@ -10,14 +12,15 @@ const url = require('url');
 const assert = require('assert');
 const yaml = require('js-yaml');
 
-// const config = module.exports = require('./config.yml');
-
 const configPath = path.join(__dirname, 'config.yml');
-const config = yaml.safeLoad(fs.readFileSync(configPath, 'utf8'));
+const config = module.exports = yaml.safeLoad(fs.readFileSync(configPath, 'utf8'));
 
 // check for required vars
 assert(process.env.NODE_ENV, 'NODE_ENV is missing');
 assert(process.env.PORT, 'PORT is missing');
+
+config.port = process.env.PORT;
+config.nodeEnv = process.env.NODE_ENV;
 
 // validate sso config
 assert(config.sso, 'sso config is missing');
@@ -39,6 +42,7 @@ assert(config.endpoints, 'endpoints are missing');
 for (let id in config.endpoints) {
   let endpoint = config.endpoints[id];
   assert(endpoint.name, 'Missing client name.');
-  assert(!isNaN(endpoint.name), 'Invalid or missing client keysize.');
+  assert(!isNaN(endpoint.keysize), 'Invalid or missing client keysize.');
   endpoint.suffix = endpoint.suffix || undefined;
 };
+

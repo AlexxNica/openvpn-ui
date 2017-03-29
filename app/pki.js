@@ -71,7 +71,7 @@ function generateCertificate(config, commonName, passphrase, client)
   // Log
   log.info('Signed new certicate for ' + commonName + ', serial ' + cert.serialNumber);
 
-  var basePath = path.resolve(__dirname + '/../certs') + , ;
+  var basePath = path.resolve(__dirname + '/../certs');
   var fileName = commonName + '-' + cert.serialNumber + '.crt';
   var filePath = path.join(basePath, fileName);
 

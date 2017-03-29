@@ -10,8 +10,8 @@ const pki = require('./app/pki');
 
 const app = express();
 
-app.listen(config.listen.port, () => {
-  console.log('Listening on ' + config.listen.address + ':' + config.listen.port);
+app.listen(config.port, () => {
+  console.log('Listening on :' + config.port);
 });
 
 // App settings - handlebars templates, static stuff, cookies

@@ -12,8 +12,8 @@ const auth = module.exports = (config) => {
         req.certCommonName = cred.email;
         next();
       })
-      .catch(() => {
-        res.status(401).send('Invalid SSO credentials.');
+      .catch((err) => {
+        res.status(401).send(err.message);
       });
   }
 }
@@ -25,15 +25,18 @@ const doAuth = (apiEndpoint, cookieName, cookieValue) => {
 
   return new Promise((resolve, reject) => {
     if(!cookieValue){
-      reject('Invalid SSO cookie.');
+      reject(Error('Invalid SSO cookie.'));
       return;
     } 
 
     const headers = {Cookie: cookieName + '=' + cookieValue};
 
     const handleResult = (result, response) => {
-      if(result instanceof Error || response.statusCode !== 200) {
-        reject('Invalid SSO credentials.');
+      if(result instanceof Error) {
+        reject(result);
+      }
+      else if (response.statusCode !== 200) {
+        reject('Unexpected status code from upstream: '+response.statusCode);
       }
       else {
         resolve(result);
