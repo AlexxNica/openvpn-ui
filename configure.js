@@ -28,16 +28,17 @@ assert(url.parse(config.sso.api), 'sso api endpoint is invalid');
 assert(config.ca, 'ca config is missing');
 assert(config.ca.key, 'ca key is missing');
 assert(config.ca.cert, 'ca cert is missing');
-assert(fs.statsSync(config.ca.key).isFile(), 'ca key file does not exist');
-assert(fs.statsSync(config.ca.cert).isFile(), 'ca cert file does not exist');
+assert(fs.statSync(config.ca.key).isFile(), 'ca key file does not exist');
+assert(fs.statSync(config.ca.cert).isFile(), 'ca cert file does not exist');
 
 config.sso.cookie = config.sso.cookie || 'openvpn.pki.gui';
 
 // validate vpn endpoints
 assert(config.endpoints, 'endpoints are missing');
 
-config.endpoints.forEach((endpoint) => {
+for (let id in config.endpoints) {
+  let endpoint = config.endpoints[id];
   assert(endpoint.name, 'Missing client name.');
   assert(!isNaN(endpoint.name), 'Invalid or missing client keysize.');
   endpoint.suffix = endpoint.suffix || undefined;
-});
+};

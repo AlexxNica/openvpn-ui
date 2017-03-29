@@ -30,7 +30,7 @@ app.use(auth(config.sso));
  */
 app.get('/', (req, res) => {
   const endpoints = [];
-  for(var endpoint in config.endpoints) {
+  for (var endpoint in config.endpoints) {
     endpoints.push({id: endpoint, name: config.endpoints[endpoint].name});
   }
   res.render('index', {endpoints: endpoints});
