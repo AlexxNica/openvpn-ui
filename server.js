@@ -1,7 +1,7 @@
 'use strict';
 
 const auth = require('./app/auth');
-const config = require('./app/config');
+const config = require('./configure');
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const fs = require('fs');

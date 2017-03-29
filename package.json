@@ -11,6 +11,7 @@
     "dotenv": "^4.0.0",
     "express": "^4.12.4",
     "express-handlebars": "^2.0.1",
+    "js-yaml": "^3.8.2",
     "jszip": "^2.5.0",
     "node-forge": "^0.6.49",
     "restler": "^3.1.0",

@@ -5,10 +5,15 @@
 require('dotenv').load();
 
 const fs = require('fs');
+const path = require('path');
 const url = require('url');
 const assert = require('assert');
+const yaml = require('js-yaml');
 
-const config = module.exports = require('./config.yml');
+// const config = module.exports = require('./config.yml');
+
+const configPath = path.join(__dirname, 'config.yml');
+const config = yaml.safeLoad(fs.readFileSync(configPath, 'utf8'));
 
 // check for required vars
 assert(process.env.NODE_ENV, 'NODE_ENV is missing');
