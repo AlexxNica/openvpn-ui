@@ -1,27 +1,42 @@
-Intro
----------------
+# OpenVPN GUI
 
-Used with [**Mini-SSO Google**][1], this UI allows to generate credentials for your OpenVPN instance.
+- Provides a small web service to generate credentials for an OpenVPN instance
+- Must be installed along with a PKI provided by [easy-rsa](https://github.com/OpenVPN/easy-rsa)
 
-You can change the **authentication middleware** if you are not using **Google Apps for Work**.
+## TODO
 
-Installation
----------------
+- Rewrite UI
+- Authorization
 
-- Fill ``config.yml`` as follow:
-  - ``listen``: **Port** and **address** for Express to bind to. Ensure to run  the app as a backend service with a **SSL-only** front end server.
-  - ``sso``: **SSO API endpoint** and **cookie name**, see [**Mini-SSO Google**][1].
-  - ``ca``: Path to your **Certificate Authority certificate** and **key**  files used by your [**OpenVPN instance**][2].
-  - ``ovpn``: The ``.ovpn`` client configuration that that will be sent along with the generated credentials. Ensure to **keep tokens** for CA/Cert/Key
+## Setup
 
+- Create a file called `config.yml` as follows using `config.yml.dist` as reference
+- Install dependencies via `npm install`
+- Run server via `node server.js`
 
-- **Install dependencies with NPM**
+## Docker/Compose
 
-``npm install``
+- Will build and run this app on `localhost:9000`
+- Will also launch an OpenVPN container providing the PKI certs
+- Useful for development, definitely _not intended for production usage_
+- Note: the `ca` container will only generate the PKI and then exit with code 0
 
-- **Run**
+## Testing the API
 
-``node server.js``
-[1]: https://github.com/ipernet/mini-sso-google
+- Generate cert:
 
-[2]: https://openvpn.net/index.php/open-source/documentation/howto.html#pki
+  ```sh
+  DATA='{"name": "someuser", "passphrase": "abc123"}'
+  curl -XPOST -d "$DATA" -H"Content-type: application/json" localhost:9000/certs
+  ```
+
+- Get openvpn config:
+
+  ```sh
+  curl localhost:9000/configs/my-vpn/someuser.ovpn
+  ```
+
+## PKI
+
+- See [setup-keys](openvpn/setup-keys/sh) for an example how to generate keys
+- Development server uses dump DH params, prod should use `./easy-rsa gen-dh`

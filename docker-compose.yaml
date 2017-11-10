@@ -1,0 +1,21 @@
+version: '3.3'
+
+services:
+  gui:
+    build: .
+    ports:
+    - "9000:9000"
+    volumes:
+    - .:/src
+    - pkidata:/etc/openvpn
+    depends_on:
+    - ca
+    command: ["nodemon", "server.js"]
+  ca:
+    image: quay.io/honestbee/openvpn
+    volumes:
+    - ./openvpn:/setup
+    - pkidata:/etc/openvpn
+    command: [/setup/configure.sh]
+volumes:
+  pkidata:
