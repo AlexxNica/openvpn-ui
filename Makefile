@@ -9,6 +9,7 @@ run: build
 	docker run -it -p $(PORT):$(PORT) --rm $(IMAGE):$(TAG)
 
 up:
+	cp config.yml.dist config.yml
 	docker-compose up
 
 down: 

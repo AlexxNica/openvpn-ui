@@ -10,7 +10,7 @@
 
 ## Setup
 
-- Create a file called `config.yml` as follows using `config.yml.dist` as reference
+- Create a file called `config.yml` using `config.yml.dist` as reference
 - Install dependencies via `npm install`
 - Run server via `node server.js`
 
