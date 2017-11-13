@@ -1,36 +1,62 @@
-<h1>VPN</h1>
+<div class="container" id="app">
 
-<div>
-  <form>
-    <div class="progress hide">
-      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width:100%"></div>
-    </div>
-
-    <div class="form-group">
-      <label for="pass">VPN Endpoint</label>
-      <select id="endpoint" class="form-control">
-        {{#each endpoints}}
-        <option value="{{name}}">{{name}}</option>
-        {{/each}}
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="pass">Certificate Passphrase</label>
-      <input type="password" class="form-control" id="password" placeholder="Passphrase">
-      <p></p>
-      <div class="progress">
-        <div id="complexity-bar" class="progress-bar progress-bar-success" role="progressbar"></div>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="warnings">
       </div>
-      <p></p>
-      <h1 id="complexity" class="pull-right">0%</h1>
     </div>
+  </div>
 
-    <p>
-      <button type="submit" class="btn btn-primary btn-lg" disabled="disabled">Download credentials</button>
-      <iframe class="hide"></iframe>
-    </p>
-  </form>
+  <div class="row" id="settings-form-container">
+    <div class="col-md-6">
+      <div>
+        <h1>OpenVPN Config</h1>
+        <p>
+          Select endpoint to generate the config for and optionally provide a passphrase below.
+          You will be able to download the generated config file at any time, however, the 
+          passphrase cannot be retrieved later.
+        </p>
+      </div>
+      <div>
+        <form id="settings-form">
+
+          <div class="form-group">
+            <label for="pass">VPN Endpoint</label>
+            <select id="select-endpoint" class="form-control">
+              {{#each endpoints}}
+              <option value="{{name}}">{{name}}</option>
+              {{/each}}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pass">Common Name</label>
+            <input type="text" class="form-control" id="input-name" placeholder="Common Name">
+          </div>
+
+          <div class="form-group">
+            <label for="pass">Passphrase</label>
+            <input type="password" class="form-control" id="input-password" placeholder="Passphrase">
+            <span id="password-strength" class="help-block"></span>
+          </div>
+
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary" disabled="disabled" id="submit-generate">
+              Generate Credentials
+            </button>
+            <span id="wait-please">Please wait ...</span>
+          </div>
+
+        </form>
+      </div>
+      <div id="download-section" class="panel panel-default">
+        <div class="download-wrapper panel-body">
+          <img src="/assets/openvpn.jpg" class="openvpn-logo"/>
+          <a id="download-link" href="">Download OpenVPN Config</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
-
-<script src="/assets/js/app/credentials.js"></script>
+<script src="/assets/app.js" ></script>

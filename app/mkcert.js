@@ -13,7 +13,7 @@ const fieldMap = {
   'OU': 'organizationalUnitName'
 }
 
-const mkcert = module.exports = async (config, endpointName, cName, passphrase = null) => {
+const mkcert = module.exports = async (config, endpointName, name, passphrase = null) => {
 
   const endpoint = config.endpoints[endpointName];
   
@@ -47,18 +47,19 @@ const mkcert = module.exports = async (config, endpointName, cName, passphrase =
   // set CN for client
   attrs.push({
     name: 'commonName',
-    value: cName
+    value: name
   });
-
 
   cert.setSubject(attrs);
   cert.setIssuer(caSubject.attributes);
-
   cert.sign(caKey, forge.md.sha256.create());
 
-  const privateKey = passphrase ?
-    forge.pki.privateKeyToPem(keys.privateKey) :
+  let privateKey = null;
+  if (passphrase == null) {
+    forge.pki.privateKeyToPem(keys.privateKey);
+  } else {
     forge.pki.encryptRsaPrivateKey(keys.privateKey, passphrase);
+  }
 
   const certs = {
     privateKey: privateKey,

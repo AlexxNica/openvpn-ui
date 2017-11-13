@@ -1,0 +1,30 @@
+body {
+  padding-top: 10px;
+}
+
+#wait-please {
+  display: none;
+}
+
+#wait-please.visible {
+  display: inline;
+}
+
+.download-wrapper {
+  text-align: center;
+  font-size: large;
+}
+
+#download-section {
+  display: none;
+  vertical-align: baseline;
+}
+
+#download-section.visible {
+  display: block;
+}
+
+.openvpn-logo {
+  padding-right: 7px;
+  vertical-align: middle;
+}
