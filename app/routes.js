@@ -2,7 +2,7 @@
 
 const express = require('express');
 const error = require('http-errors');
-const mkcert = require('./mkcert');
+const {MkCert, ListCerts} = require('./pki');
 const writeCerts = require('./writeCerts');
 const loadCerts = require('./loadCerts');
 const genOvpn = require('./genOvpn');
@@ -57,13 +57,25 @@ router.post('/certs', async (req, res, next) => {
   }
 
   try {
-    const certs = await mkcert(config, endpoint, name, passphrase);
+    const certs = await MkCert(config, endpoint, name, passphrase);
     await writeCerts(config.pki.path, name, certs);
 
     res.status(200).json({
       message: 'OK',
       configPath: `/configs/${endpoint}/${name}.ovpn`
     });
+  } catch(err) {
+    next(err);
+  }
+});
+
+/**
+ * Get list of certs issued so far
+ */
+router.get('/certs', async (req, res, next) => {
+  try {
+    const certs = await ListCerts(config);
+    res.status(200).json(certs);
   } catch(err) {
     next(err);
   }

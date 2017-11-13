@@ -6,6 +6,7 @@ pki:
   cacert: /etc/openvpn/pki/ca.crt
   dh: /etc/openvpn/pki/dh.pem
   path: /etc/openvpn/pki
+  index: /etc/openvpn/pki/index.txt
 endpoints:
   my-vpn:
     keysize: 2048

@@ -14,7 +14,7 @@ cp -R /usr/share/easy-rsa/* $PKI_DIR
 cd $PKI_DIR
 
 ./easyrsa init-pki
-echo "bee-pn" | ./easyrsa build-ca nopass
+echo "My OpenVPN" | ./easyrsa build-ca nopass
 
 ./easyrsa build-server-full server nopass
 ./easyrsa gen-crl
