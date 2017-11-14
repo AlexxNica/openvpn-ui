@@ -31,7 +31,7 @@
 - Will build and run this app on `localhost:9000`
 - OpenVPN container providing the PKI certs
 - Useful for development, _not intended for production_
-- Note: the `ca` container will only generate the PKI and then exit with code `0`
+- Note: the `ca` container will only init the PKI and exit with code `0`
 
 ```sh
 export GITHUB_CLIENT_ID=<your-client-id-here>
@@ -47,7 +47,7 @@ make up
 ### Github OAuth
 
 - So far supports Github OAuth server side flow
-- You need to register an app to obtain a client id and client secret
+- You need to [register an app](https://github.com/settings/applications/new) to obtain a client id and secret
 - Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in your shell
 
 ## Testing the API
@@ -64,8 +64,3 @@ make up
   ```sh
   curl localhost:9000/configs/my-vpn/someuser.ovpn
   ```
-
-## PKI
-
-- 
-- Development server uses dummy DH params, prod should use `./easy-rsa gen-dh`
