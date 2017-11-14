@@ -32,8 +32,6 @@
     isValid: true
   };
 
-  console.log(state);
-
   function updateState(update) {
     state = Object.assign({}, state, update);
     // primitive event dispatcher
@@ -153,6 +151,7 @@
       method: "POST",
       body: JSON.stringify(payload),
       headers: {"Content-type": "application/json"},
+      credentials: "same-origin"
     };
 
     resetForm();
