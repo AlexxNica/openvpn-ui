@@ -150,11 +150,13 @@
     var opts = {
       method: "POST",
       body: JSON.stringify(payload),
-      headers: {"Content-type": "application/json"},
+      headers: {
+        "Content-type": "application/json",
+        "Accept": "application/json"
+      },
       credentials: "same-origin"
     };
 
-    resetForm();
     updateState({pending: true});
 
     fetch("/certs", opts)
@@ -163,6 +165,7 @@
       })
       .then(function(data) {
         var url = baseUrl() + data.configPath;
+        resetForm();
         updateState({
           pending: false,
           downloadUrl: url

@@ -30,9 +30,11 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(morgan('tiny'));
 
+
 // app specific middleware and routes
 app.use(auth(config));
 app.use(routes);
+
 
 // 404 handler. Invoked when none of the above kicks in
 app.use((req, res, next) => next(error.NotFound()));
@@ -44,7 +46,13 @@ app.use((err, req, res, next) => {
   if (statusCode >= 500) {
     console.error(err.stack || err);
   }
-  res.status(statusCode).json({message});
+
+  if (req.accepts('html')) {
+    res.status(statusCode).render('error', {statusCode, message});
+  }
+  else {
+    res.status(statusCode).json({message});
+  }
 });
 
 

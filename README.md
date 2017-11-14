@@ -8,7 +8,6 @@
 
 - List certificates
 - Revoke certificates
-- Friendly error page
 - Password generation
 
 ## Usage

@@ -49,6 +49,7 @@ router.get('/configs/:endpoint/:name.ovpn', async (req, res, next) => {
  * Generate ovpn config for given cn/user and return the path to download it relative to root url
  */
 router.post('/certs', async (req, res, next) => {
+
   const name = req.body.name;
   const passphrase = req.body.passphrase;
   const endpoint = req.body.endpoint;
