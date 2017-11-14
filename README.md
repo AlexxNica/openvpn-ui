@@ -13,6 +13,7 @@
 ## Setup
 
 - Create a file called `config.yml` using `config.yml.dist` as reference
+- Create and set Github client secrets if you want auth, must be set as env vars
 - Install dependencies: `npm install`
 - Run server: `node server.js`
 
@@ -22,6 +23,18 @@
 - Will also launch an OpenVPN container providing the PKI certs
 - Useful for development, definitely _not intended for production usage_
 - Note: the `ca` container will only generate the PKI and then exit with code `0`
+
+```sh
+GITHUB_CLIENT_ID=<your-client-id-here>
+GITHUB_CLIENT_SECRET=<your-secret-here>
+make up
+```
+
+## Authorization
+
+- So far supports Github OAuth server side flow
+- You need to register an app to obtain a client id and client secret
+- Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in your shell
 
 ## Testing the API
 

@@ -8,7 +8,11 @@ build:
 run: build
 	docker run -it -p $(PORT):$(PORT) --rm $(IMAGE):$(TAG)
 
-up:
+config.yml:
+	cp config.yml.dist config.yml
+	@echo "A config.yml has been created, customize it if necessary"
+
+up: config.yml
 	docker-compose up
 
 down: 

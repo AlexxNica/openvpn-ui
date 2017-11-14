@@ -14,10 +14,11 @@ const router = module.exports = express.Router();
  * Base route, renders the index page with initial state.
  */
 router.get('/', (req, res) => {
+  const username = req.user ? req.user.name : "";
   const endpoints = Object.keys(config.endpoints).map(name=> {
     return {name}
-  })
-  res.render('index', {endpoints});
+  });
+  res.render('index', {endpoints, username});
 });
 
 /**
@@ -79,24 +80,4 @@ router.get('/certs', async (req, res, next) => {
   } catch(err) {
     next(err);
   }
-});
-
-/**
- * 404 handler. Invoked when none of the above kicks in
- */
-router.use((req, res, next) => {
-  next(error.NotFound());
-});
-
-/**
- * Error handler, send response as json (No error page, sry)
- */
-router.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-
-  if (statusCode >= 500) {
-    console.error(err.stack || err);
-  }
-  res.status(statusCode).json({message});
 });

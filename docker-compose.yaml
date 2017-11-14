@@ -7,10 +7,12 @@ services:
     - "9000:9000"
     volumes:
     - .:/src
-    - ./config.yml.dist:/src/config.yml
     - pkidata:/etc/openvpn
     depends_on:
     - ca
+    environment:
+      - GITHUB_CLIENT_ID
+      - GITHUB_CLIENT_SECRET
     command: ["nodemon", "server.js"]
   ca:
     image: quay.io/honestbee/openvpn

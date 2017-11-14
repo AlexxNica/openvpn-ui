@@ -25,12 +25,14 @@
   var state = {
     endpoint: getSelected(endpointSelector),
     password: "",
-    name: "",
+    name: nameInput.value,
     requestPending: false,
     downloadUrl: null,
     error: null,
     isValid: true
   };
+
+  console.log(state);
 
   function updateState(update) {
     state = Object.assign({}, state, update);

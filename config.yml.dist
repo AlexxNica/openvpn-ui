@@ -1,6 +1,12 @@
 sso:
   api: https://mysso.example.org
   cookie: SSO
+auth:
+  type: github
+  options:
+    callback: /gh/callback # set this in your app settings
+    # orgId: 123 # require user to be member of this org
+    # teamIds: [42] # require user to be in at least one of these teams
 pki:
   cakey: /etc/openvpn/pki/private/ca.key
   cacert: /etc/openvpn/pki/ca.crt

@@ -1,24 +1,17 @@
-// var	restler	=	require('restler'),
-// 	promise	=	require('bluebird')
-// ;
+'use strict';
 
-// exports.check =	function(apiEndpoint, cookieName, cookieValue)
-// {	
-// 	return new promise(function(resolv, reject)
-// 	{
-// 		if( ! cookieValue)
-// 			reject('Invalid SSO cookie.');
-		
-// 		restler.get(apiEndpoint, {
-// 			headers: {
-// 				Cookie: cookieName + '=' + cookieValue
-// 			}
-// 		}).on('complete', function(result, response)
-// 		{		
-// 			if(result instanceof Error || response.statusCode !== 200)
-// 				reject('Invalid SSO credentials.');
+// Dummy middleware, used when no other auth was configured
+const passTrough = (req, res, next) => next()
 
-// 			resolv(result);
-// 		});
-// 	});
-// }
+/**
+ * Simple factory creating the authorization middleware based on system config.
+ */
+const MkAuth = module.exports = (config) => {
+  if (!config.auth) {
+    console.log("No auth configured");
+    return passTrough;
+  }
+  const type = config.auth.type;
+  const mod = require('./auth/'+type)(config.auth.options);
+  return mod;
+}
