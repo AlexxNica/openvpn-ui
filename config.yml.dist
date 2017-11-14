@@ -1,18 +1,20 @@
-sso:
-  api: https://mysso.example.org
-  cookie: SSO
+# Auth can be skipped entirely, assuming you have another authorization mechanism in place.
+# Modules are pluggable, each module having specific options. For now only Github is supported
 auth:
-  type: github
+  module: auth/github
+  # Note: GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET must be set in env
   options:
     callback: /gh/callback # set this in your app settings
     # orgId: 123 # require user to be member of this org
     # teamIds: [42] # require user to be in at least one of these teams
+# PKI settings, adjust according to your easy-rsa setup
 pki:
   cakey: /etc/openvpn/pki/private/ca.key
   cacert: /etc/openvpn/pki/ca.crt
   dh: /etc/openvpn/pki/dh.pem
   path: /etc/openvpn/pki
-  index: /etc/openvpn/pki/index.txt
+# Multiple endpoints are supported, each with their own .ovpn template. Some placeholders can be
+# substituted, but this is not a templating engine
 endpoints:
   my-vpn:
     keysize: 2048

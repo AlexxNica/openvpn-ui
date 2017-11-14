@@ -11,7 +11,7 @@ const MkAuth = module.exports = (config) => {
     console.log("No auth configured");
     return passTrough;
   }
-  const type = config.auth.type;
-  const mod = require('./auth/'+type)(config.auth.options);
+  const path = config.auth.module;
+  const mod = require('./'+path)(config.auth.options);
   return mod;
 }
