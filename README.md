@@ -1,8 +1,7 @@
 # OpenVPN GUI
 
-- Provides a small web service to generate credentials for an OpenVPN infrastructure
-- It supports multiple VPN endpoints using the same CA
-- Must be installed along with the CA provided by [easy-rsa](https://github.com/OpenVPN/easy-rsa)
+- Provides a small web service to generate credentials for an OpenVPN [PKI](https://en.wikipedia.org/wiki/Public_key_infrastructure)
+- Supports multiple VPN endpoints using the same CA
 - It is not wise to expose this to the public - preferrably use intranet or an IP filter
 
 ## TODO
@@ -12,27 +11,40 @@
 - Friendly error page
 - Password generation
 
-## Setup
+## Usage
 
-- Create a file called `config.yml` using `config.yml.dist` as reference
-- Create and set Github client secrets if you want auth, must be set as env vars
+- Initialize a certificate authority, e.g. using [easy-rsa](https://github.com/OpenVPN/easy-rsa)
+- Create `config.yml` using `config.yml.dist` as reference
+- Create and set Github client secrets if you want auth, must be set in env
 - Install dependencies: `npm install`
 - Run server: `node server.js`
 
-## Docker/Compose
+### Certificate Authority/PKI
+
+- Neither OpenVPN nor the CA certs are part of this container (yet)
+- It is assumed that the CA certs will be provided as mounted volumes
+- For _testing_ [docker-compose.yml](./docker-compose.yaml) will provide a dummy CA
+- See [setup-certs.sh](openvpn/setup-certs.sh) for how to generate CA certs and keys
+
+### Docker/Compose
 
 - Will build and run this app on `localhost:9000`
-- Will also launch an OpenVPN container providing the PKI certs
-- Useful for development, definitely _not intended for production usage_
+- OpenVPN container providing the PKI certs
+- Useful for development, _not intended for production_
 - Note: the `ca` container will only generate the PKI and then exit with code `0`
 
 ```sh
-GITHUB_CLIENT_ID=<your-client-id-here>
-GITHUB_CLIENT_SECRET=<your-secret-here>
+export GITHUB_CLIENT_ID=<your-client-id-here>
+export GITHUB_CLIENT_SECRET=<your-secret-here>
 make up
 ```
 
 ## Authorization
+
+- Technically extensible/pluggable 
+- So far only a Github OAuth provider is included
+
+### Github OAuth
 
 - So far supports Github OAuth server side flow
 - You need to register an app to obtain a client id and client secret
@@ -55,5 +67,5 @@ make up
 
 ## PKI
 
-- See [setup-certs.sh](openvpn/setup-certs.sh) for an example how to generate CA certs and keys
+- 
 - Development server uses dummy DH params, prod should use `./easy-rsa gen-dh`
