@@ -7,8 +7,10 @@
 
 ## TODO
 
-- Rewrite UI
-- Authorization
+- List certificates
+- Revoke certificates
+- Friendly error page
+- Password generation
 
 ## Setup
 
