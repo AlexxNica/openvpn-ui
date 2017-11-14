@@ -11,6 +11,7 @@ WORKDIR /src/
 RUN npm install
 
 COPY . /src/
+COPY ./config.yml.dist /src/config.yml
 
 EXPOSE 9000
 
