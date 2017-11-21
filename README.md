@@ -54,7 +54,7 @@ make up
 - Generate cert:
 
   ```sh
-  DATA='{"name": "someuser", "passphrase": "abc123"}'
+  DATA='{"name": "someuser", "passphrase": "abc123", "endpoint": "my-vpn"}'
   curl -XPOST -d "$DATA" -H"Content-type: application/json" localhost:9000/certs
   ```
 

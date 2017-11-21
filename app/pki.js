@@ -1,9 +1,8 @@
 'use strict';
 
+const assert = require('assert');
 const fs = require('fs');
-const path = require('path');
 const forge = require('node-forge');
-const genOvpn = require('./genOvpn');
 const {promisify} = require('util');
 const error = require('http-errors');
 const moment = require('moment');
@@ -32,8 +31,8 @@ const asn1date = 'YYMMDDHHmmss[Z]';
 exports.MkCert = async (config, endpointName, name, passphrase = null) => {
 
   const endpoint = config.endpoints[endpointName];
-  const indexFile = path.join(config.pki.path, "/index.txt");
-  const serialFile = path.join(config.pki.path, "/serial");
+  const indexFile = config.pki.index;
+  const serialFile = config.pki.serial;
 
   if (!await isUnique(indexFile, name)) {
     throw error.Conflict("A certificate with this name was already issued");
@@ -70,18 +69,14 @@ exports.MkCert = async (config, endpointName, name, passphrase = null) => {
   try {
     cert.serialNumber = await getNextSerial(serialFile);
     cert.sign(caKey, forge.md.sha256.create());
-
-    // Cert was issued, update the index and unlock index file
-    await updateIndex(indexFile, name, cert.serialNumber, mEnd);
-    await unlockIndex(indexFile);
     
     let privateKey = null;
     if (passphrase == null) {
-      forge.pki.privateKeyToPem(keys.privateKey);
+      privateKey = forge.pki.privateKeyToPem(keys.privateKey);
     } else {
-      forge.pki.encryptRsaPrivateKey(keys.privateKey, passphrase);
+      privateKey = forge.pki.encryptRsaPrivateKey(keys.privateKey, passphrase);
     }
-  
+
     const certs = {
       privateKey: privateKey,
       publicKey: forge.pki.publicKeyToPem(keys.publicKey),
@@ -89,21 +84,32 @@ exports.MkCert = async (config, endpointName, name, passphrase = null) => {
       ca: forge.pki.certificateToPem(caCert),
       dh: config.certs.dh.toString('ascii')
     };
+
+    validateCerts(certs);
+
+    // Cert was issued, update the index and unlock index file
+    await updateIndex(indexFile, name, cert.serialNumber, mEnd);
+    await unlockIndex(indexFile);
   
     return certs;
 
   } catch(err) {
-    // Ensure we unlock the index before we go down ...
+    // Ensure we unlock the index before we go ...
     await unlockIndex(indexFile);
     throw err;
   }
 };
 
 exports.ListCerts = async (config) => {
-  const indexFile = path.join(config.pki.path, "index.txt");
+  const indexFile = config.pki.index;
   return listCerts(indexFile);
 }
 
+const validateCerts = (certs) => {
+  assert(certs.privateKey, 'Invalid or missing private key');
+  assert(certs.publicKey, 'Invalid or missing public key');
+  assert(certs.certificate, 'Invalid certificate');
+}
 
 const listCerts = async (indexFile) => {
   const data = await readFile(indexFile, {encoding: 'ascii'});

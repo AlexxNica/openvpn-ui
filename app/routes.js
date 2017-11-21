@@ -3,9 +3,8 @@
 const express = require('express');
 const error = require('http-errors');
 const {MkCert, ListCerts} = require('./pki');
-const writeCerts = require('./writeCerts');
-const loadCerts = require('./loadCerts');
-const genOvpn = require('./genOvpn');
+const {writeCerts, loadCerts} = require('./certio');
+const genOvpn = require('./tpl');
 const config = require('./configure');
 
 const router = module.exports = express.Router();

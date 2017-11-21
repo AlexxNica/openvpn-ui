@@ -43,15 +43,18 @@ app.use((req, res, next) => next(error.NotFound()));
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
+  const accepts = req.accepts(['json', 'html']);
+
   if (statusCode >= 500) {
     console.error(err.stack || err);
   }
 
-  if (req.accepts('html')) {
-    res.status(statusCode).render('error', {statusCode, message});
-  }
-  else {
-    res.status(statusCode).json({message});
+  switch (accepts) {
+    case 'html':
+      res.status(statusCode).render('error', {statusCode, message});
+    case 'json':
+    default:
+      res.status(statusCode).json({message}); break;
   }
 });
 
