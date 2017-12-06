@@ -58,8 +58,8 @@ router.post('/certs', async (req, res, next) => {
   }
 
   try {
-    const certs = await MkCert(config, endpoint, name, passphrase);
-    await writeCerts(config.pki.path, name, certs);
+    await MkCert(config, endpoint, name, passphrase);
+    // await writeCerts(config.pki.path, name, certs);
 
     res.status(200).json({
       message: 'OK',

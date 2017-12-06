@@ -12,10 +12,11 @@ const path = require('path');
  * Generates the file names used to store certificate and private key for given client name based
  * on given easyrsa pki base path.
  */
-const certPaths = (pkiPath, name) => {
-  const privateKeyPath = path.join(pkiPath, 'private', name+'.key');
+const certPaths = module.exports.certPaths = (pkiPath, name) => {
+  const keyPath = path.join(pkiPath, 'private', name+'.key');
   const certPath = path.join(pkiPath, 'issued', name+'.crt');
-  return {privateKeyPath, certPath};
+  const reqPath = path.join(pkiPath, 'reqs', name+'.csr');
+  return {pkiPath, keyPath, certPath, reqPath};
 }
 
 
@@ -26,19 +27,19 @@ const certPaths = (pkiPath, name) => {
  * @param {object} certs object containing certificate data
  */
 module.exports.writeCerts = async (pkiPath, name, certs) => {
-  const {privateKeyPath, certPath} = certPaths(pkiPath, name);
-  await writeFile(privateKeyPath, certs.privateKey);
+  const {keyPath, certPath} = certPaths(pkiPath, name);
+  await writeFile(keyPath, certs.privateKey);
   await writeFile(certPath, certs.certificate);
   console.log(`Client certificate for ${name} written to ${certPath}`);
 }
 
 
 module.exports.loadCerts = async (config, name) => {
-  const {privateKeyPath, certPath} = certPaths(config.pki.path, name);
+  const {keyPath, certPath} = certPaths(config.pki.path, name);
   const caPath = config.pki.cacert;
   const dhPath = config.pki.dh;
 
-  const privateKey = await loadFile(privateKeyPath);
+  const privateKey = await loadFile(keyPath);
   const certificate = await loadFile(certPath);
   const dh = await loadFile(dhPath);
   const ca = await loadFile(caPath);

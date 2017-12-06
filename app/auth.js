@@ -8,7 +8,7 @@ const passTrough = (req, res, next) => next()
  */
 const MkAuth = module.exports = (config) => {
   if (!config.auth) {
-    console.log("No auth configured");
+    console.log("No auth configured, using passthrough");
     return passTrough;
   }
   const path = config.auth.module;

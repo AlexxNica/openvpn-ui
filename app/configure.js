@@ -20,6 +20,12 @@ const config = module.exports = yaml.safeLoad(fs.readFileSync(configPath, 'utf8'
 // Additional env vars
 config.port = process.env.PORT || 9000;
 
+// Validate easyrsa is present
+// assert(config.easyrsa, 'easyrsa config is missing in config');
+// assert(config.easyrsa.bin, 'easyrsa bin path is missing in config');
+assert(config.openssl.config, 'openssl config is missing in config');
+assert(fs.existsSync(config.openssl.config),  'easyrsa not found at '+config.openssl.config);
+
 // Validate PKI structure
 assert(config.pki.path, 'Path to PKI missing in config');
 assert(fs.existsSync(config.pki.path), 'Path to PKI does not exist');

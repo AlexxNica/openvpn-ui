@@ -2,6 +2,7 @@ FROM node:9.1-alpine
 
 ENV PORT=9000
 
+RUN apk --no-cache add openssl
 RUN npm -g install nodemon
 
 RUN mkdir /src

@@ -10,6 +10,7 @@ auth:
 
 # PKI settings, adjust according to your easy-rsa setup. Only path is required, paths to individual
 # files can be customized. Defaults are shown below
+easyrsa: /etc/openvpn/easyrsa
 pki:
   path: /etc/openvpn/pki
   # cakey: /etc/openvpn/pki/private/ca.key
