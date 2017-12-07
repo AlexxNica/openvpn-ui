@@ -15,6 +15,7 @@
   var generatePasswordButton = document.getElementById("generate-password");
   var passwordStrengthBox = document.getElementById("password-strength");
   var submitButton = document.getElementById("submit-generate");
+  var resetButton = document.getElementById("reset-form");
   var settingsForm = document.getElementById("settings-form");
   var warningPane = document.getElementById("warnings");
   var waitPlease = document.getElementById("wait-please");
@@ -180,7 +181,6 @@
       })
       .then(function(data) {
         var url = baseUrl() + data.configPath;
-        resetForm();
         updateState({
           pending: false,
           downloadUrl: url
@@ -246,6 +246,11 @@
   generatePasswordButton.addEventListener("mouseup", function(e) {
     e.preventDefault();
     generatePassword();
+  });
+
+  resetButton.addEventListener("mouseup", function(e) {
+    e.preventDefault();
+    resetForm();
   });
 
   nameInput.addEventListener("keyup", function(e) {
