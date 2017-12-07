@@ -2,12 +2,12 @@
 
 const express = require('express');
 const error = require('http-errors');
-const {MkCert, ListCerts} = require('./pki');
-const {writeCerts, loadCerts} = require('./certio');
-const genOvpn = require('./tpl');
+const {MkCert, ListCerts, LoadCerts} = require('./pki');
+const tpl = require('./tpl');
 const config = require('./configure');
 
 const router = module.exports = express.Router();
+
 
 /**
  * Base route, renders the index page with initial state.
@@ -19,6 +19,7 @@ router.get('/', (req, res) => {
   });
   res.render('index', {endpoints, username});
 });
+
 
 /**
  * Download generated ovpn config for given cn/user. Expects name for the cert and the endpoint
@@ -33,8 +34,8 @@ router.get('/configs/:endpoint/:name.ovpn', async (req, res, next) => {
   }
 
   try {
-    const certs = await loadCerts(config, name);
-    const ovpn = genOvpn(config.endpoints[endpoint].ovpn, certs);
+    const certs = await LoadCerts(config, name);
+    const ovpn = tpl(config.endpoints[endpoint].ovpn, certs);
     res
       .header('Content-disposition', 'attachment; filename="'+ name +'.ovpn"')
       .header('Content-type', 'text/plain')
@@ -44,11 +45,11 @@ router.get('/configs/:endpoint/:name.ovpn', async (req, res, next) => {
   }
 });
 
+
 /**
  * Generate ovpn config for given cn/user and return the path to download it relative to root url
  */
 router.post('/certs', async (req, res, next) => {
-
   const name = req.body.name;
   const passphrase = req.body.passphrase;
   const endpoint = req.body.endpoint;
@@ -69,6 +70,7 @@ router.post('/certs', async (req, res, next) => {
     next(err);
   }
 });
+
 
 /**
  * Get list of certs issued so far

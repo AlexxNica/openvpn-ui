@@ -1,26 +1,18 @@
 'use strict';
 
 const assert = require('assert');
-const fs = require('fs');
-const forge = require('node-forge');
-const {promisify} = require('util');
 const error = require('http-errors');
+const fs = require('fs');
 const moment = require('moment');
+const {promisify} = require('util');
 const {sprintf} = require('sprintf-js');
 const {spawn} = require('child_process');
+const path = require('path');
 
-const {certPaths} = require('./certio');
-
-// Promisified versions of fs library functions
-// const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
-// const unlink = promisify(fs.unlink);
-// const exists = promisify(fs.exists);
-// const appendFile = promisify(fs.appendFile);
 
-const asn1date = 'YYMMDDHHmmss[Z]';
+const ASN_1_DATE = 'YYMMDDHHmmss[Z]';
 
-// mkcert: ./easyrsa build-client-full $1 nopass
 
 /**
  * Generate client certificate and certificate key for given name. Optionally encrypt the key with
@@ -139,9 +131,14 @@ const execOpensslCmd = (args, pkiPath, cn) => {
 }
 
 
+/**
+ * Used when child process fails, concatenates output buffers and prints them
+ * @param {*int} code exit code returned by the program
+ * @param {*[]Buffer} out output collected from the child process
+ */
 const cpFail = (code, out) => {
   console.error('Child process failed, see output below');
-  console.error(out.toString('utf-8'));
+  console.error(Buffer.concat(out).toString('utf-8'));
 }
 
 
@@ -151,8 +148,44 @@ const cpFail = (code, out) => {
  */
 exports.ListCerts = async (config) => {
   const indexFile = config.pki.index;
-  return listCerts(indexFile);
+  const data = await readFile(indexFile, {encoding: 'utf-8'});
+  
+  return data
+    .split("\n")
+    .slice(0, -1)
+    .map(line => {
+      // replace consecutive tabs with single ; then split
+      const [state, exp, srl, _, subject] = line.replace(/\t+/g, ";").split(";");
+
+      // TODO: properly parse X.500 DN?
+      const name = subject.match(/\/CN=(\w+)/)[1];
+      const expires = moment(exp, ASN_1_DATE).toJSON();
+      const serial = parseInt(srl);
+
+      return {state, subject, name, expires, serial};
+    })
+    .filter(c => c.name != 'server');
 }
+
+
+/**
+ * Load the certs for given entity and return them along with the dh params and ca cert
+ * @param {*object} config app config
+ * @param {*string} name name of the entity to retrieve certs for
+ */
+exports.LoadCerts = async (config, name) => {
+  const {keyPath, certPath} = certPaths(config.pki.path, name);
+  const caPath = config.pki.cacert;
+  const dhPath = config.pki.dh;
+
+  const privateKey = await readFile(keyPath, {encoding: 'utf-8'});
+  const certificate = await readFile(certPath, {encoding: 'utf-8'});
+  const dh = await readFile(dhPath, {encoding: 'utf-8'});
+  const ca = await readFile(caPath, {encoding: 'utf-8'});
+
+  return {privateKey, certificate, dh, ca};
+}
+
 
 const validateCerts = (certs) => {
   assert(certs.privateKey, 'Invalid or missing private key');
@@ -160,19 +193,14 @@ const validateCerts = (certs) => {
   assert(certs.certificate, 'Invalid certificate');
 }
 
-const listCerts = async (indexFile) => {
-  const data = await readFile(indexFile, {encoding: 'ascii'});
 
-  return data.split("\n").slice(0, -1).map(line => {
-    const [state, exp, serial, _, subject] = line.replace(/\t+/g, ";").split(";");
-    // TODO: properly parse X.500 DN?
-    const name = subject.match(/\/CN=(\w+)/)[1];
-    return {
-      state,
-      subject,
-      name,
-      expires: moment(exp, asn1date).toJSON(),
-      serial: parseInt(serial),
-    }
-  });
+/**
+ * Generates the file names used to store certificate and private key for given client name based
+ * on given easyrsa pki base path.
+ */
+const certPaths = module.exports.certPaths = (pkiPath, name) => {
+  const keyPath = path.join(pkiPath, 'private', name+'.key');
+  const certPath = path.join(pkiPath, 'issued', name+'.crt');
+  const reqPath = path.join(pkiPath, 'reqs', name+'.csr');
+  return {pkiPath, keyPath, certPath, reqPath};
 }
