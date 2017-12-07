@@ -12,6 +12,9 @@ const path = require('path');
 const readFile = promisify(fs.readFile);
 
 const ASN_1_DATE = 'YYMMDDHHmmss[Z]';
+const STATE_VALID = 'valid';
+const STATE_REVOKED = 'revoked';
+const STATE_MAP = {'V': STATE_VALID, 'R': STATE_REVOKED};
 
 
 class CpError extends Error {
@@ -193,7 +196,7 @@ exports.LoadCerts = async (config, name) => {
 const certExists = async (indexFile, name) => {
   const certs = await listCerts(indexFile);
   const existing = certs.filter(c => 
-    c.name === name && c.state === 'V' && !c.isExpired
+    c.name === name && c.state === STATE_VALID && !c.isExpired
   );
   return existing.length > 0;
 }
@@ -207,16 +210,17 @@ const listCerts = async (indexFile) => {
     .split("\n")
     .slice(0, -1)
     .map(line => {
-      // replace consecutive tabs with single ; then split
-      const [state, exp, srl, _, subject] = line.replace(/\t+/g, ";").split(";");
+      const [st, exp, revk, srl, _4, subject] = line.split("\t");
 
       // TODO: properly parse X.500 DN?
+      const state = STATE_MAP[st];
       const name = subject.match(/\/CN=(\w+)/)[1];
       const expires = moment(exp, ASN_1_DATE);
-      const serial = parseInt(srl);
+      const revoked = revk.length > 0 ? moment(revk, ASN_1_DATE) : undefined;
       const isExpired = expires.isBefore(now);
+      const serial = parseInt(srl, 16);
 
-      return {state, subject, name, expires, isExpired, serial};
+      return {state, subject, name, expires, revoked, isExpired, serial};
     })
     .filter(c => c.name != 'server');
 }
