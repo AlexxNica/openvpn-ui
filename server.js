@@ -6,6 +6,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const error = require('http-errors');
 
 const config = require('./app/configure');
 const routes = require('./app/routes');
