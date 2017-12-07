@@ -12,6 +12,7 @@
   var endpointSelector = document.getElementById("select-endpoint");
   var passwordInput = document.getElementById("input-password");
   var nameInput = document.getElementById("input-name");
+  var generatePasswordButton = document.getElementById("generate-password");
   var passwordStrengthBox = document.getElementById("password-strength");
   var submitButton = document.getElementById("submit-generate");
   var settingsForm = document.getElementById("settings-form");
@@ -19,6 +20,7 @@
   var waitPlease = document.getElementById("wait-please");
   var downloadSection = document.getElementById("download-section");
   var downloadLink = document.getElementById("download-link");
+
 
   // central state for app
   // events are triggered every time it changes
@@ -61,10 +63,23 @@
   function resetForm() {
     updateName("");
     updatePassword("");
+    passwordInput.setAttribute("type", "passw");
+    passwordStrengthBox.innerHTML = "";
   }
   
   function handleError(message) {
     updateState({error: message});
+  }
+
+  function generatePassword() {
+    var pwgen = new PWGen();
+    pwgen.maxLength = new Number(20);
+    pwgen.includeCapitalLetter = true;
+    pwgen.includeNumber = true;
+    password = pwgen.generate();
+
+    passwordInput.setAttribute("type", "text");
+    updatePassword(password);
   }
 
   // Listen to changes in passwordStrength, update password strength display
@@ -190,7 +205,19 @@
 
   // Update the password strength info text
   function renderPasswordStrength(value) {
-    passwordStrengthBox.innerHTML = "Strength: "+value+"";
+    var elem = document.createElement("span");
+    var msg = "Length: "+value+"";
+    var style = "pwnok";
+
+    if (value > passwordMinLength) {
+      style = "pwok";
+      msg += " ✓";
+    }
+
+    elem.classList.add(style);
+    elem.innerHTML = msg;
+    passwordStrengthBox.innerHTML = '';
+    passwordStrengthBox.appendChild(elem);
   }
 
   // Utilities
@@ -214,6 +241,11 @@
 
   passwordInput.addEventListener("keyup", function(e) {
     updatePassword(e.target.value);
+  });
+
+  generatePasswordButton.addEventListener("mouseup", function(e) {
+    e.preventDefault();
+    generatePassword();
   });
 
   nameInput.addEventListener("keyup", function(e) {

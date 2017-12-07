@@ -14,6 +14,14 @@ const readFile = promisify(fs.readFile);
 const ASN_1_DATE = 'YYMMDDHHmmss[Z]';
 
 
+class CpError extends Error {
+  constructor(exitCode, message) {
+    super("Child process failed with code "+exitCode);
+    this.exitCode = exitCode;
+  }
+}
+
+
 /**
  * Generate client certificate and certificate key for given name. Optionally encrypt the key with
  * a given passwd.
@@ -27,11 +35,16 @@ const ASN_1_DATE = 'YYMMDDHHmmss[Z]';
  */
 exports.MkCert = async (config, endpointName, name, passwd=null) => {
   const pkiPath = config.pki.path;
+  const indexFile = config.pki.index;
   const paths = certPaths(pkiPath, name);
 
   const {cacert, cakey} = config.pki;
   const opensslConf = config.openssl.config;
   const keySize = config.endpoints[endpointName].keysize;
+
+  if (await certExists(indexFile, name)) {
+    throw error.Conflict(`A valid cert for ${name} already exists`);
+  }
 
   await genReq(name, keySize, opensslConf, passwd, paths);
   await signReq(name, opensslConf, paths);
@@ -61,10 +74,14 @@ const genReq = async (cn, keySize, opensslConf, passwd, {pkiPath, keyPath, reqPa
     args.push('-nodes');
   }
 
-  await execOpensslCmd(args, pkiPath, cn, env);
-  
-  console.log('Key written to', keyPath);
-  console.log('Req written to', reqPath);
+  try {
+    await execOpensslCmd(args, pkiPath, cn, env);
+    console.log('Key written to', keyPath);
+    console.log('Req written to', reqPath);
+  } catch(err) {
+    // re-throw with a more meaningful error message
+    throw Error("Error generating CSR, (openssl exit code "+err.exitCode+")");
+  }
 }
 
 
@@ -79,8 +96,13 @@ const signReq = async (cn, opensslConf, {pkiPath, reqPath, certPath}) => {
     '-batch'
   ];
 
-  await execOpensslCmd(args, pkiPath, cn);
-  console.log('Cert written to', certPath);
+  try {
+    await execOpensslCmd(args, pkiPath, cn);
+    console.log('Cert written to', certPath);
+  } catch(err) {
+    // re-throw with a more meaningful error message
+    throw Error("Failed to sign certificate (openssl exit code "+err.exitCode+")");
+  }
 }
 
 
@@ -117,38 +139,25 @@ const execOpensslCmd = (args, pkiPath, cn, env={}) => {
     const opts = {env: optEnv};
     const cp = spawn(cmd, args, opts);
 
-    const parts = [];
-    cp.stdout.on('data', b => parts.push(b));
-    cp.stderr.on('data', b => parts.push(b));
+    const stdout = [];
+    const stderr = [];
+
+    cp.stdout.on('data', b => stdout.push(b));
+    cp.stderr.on('data', b => stderr.push(b));
 
     cp.on('error', err => {
-      cpFail(err, parts);
       reject(err);
     });
 
     cp.on('exit', code => {
-      if (code == 0) {
-        console.log('Child process exited with code', code);
-        resolve();
-      }
+      if (code == 0) resolve();
       else {
-        const err = new Error('Child process exited with code '+code);
-        cpFail(err, parts);
-        reject(err);
+        console.log(Buffer.concat(stdout).toString('utf-8'));
+        console.error(Buffer.concat(stderr).toString('utf-8'));
+        reject(new CpError(code));
       }
     });
   });
-}
-
-
-/**
- * Used when child process fails, concatenates output buffers and prints them
- * @param {*int} code exit code returned by the program
- * @param {*[]Buffer} out output collected from the child process
- */
-const cpFail = (code, out) => {
-  console.error('Child process failed, see output below');
-  console.error(Buffer.concat(out).toString('utf-8'));
 }
 
 
@@ -158,23 +167,7 @@ const cpFail = (code, out) => {
  */
 exports.ListCerts = async (config) => {
   const indexFile = config.pki.index;
-  const data = await readFile(indexFile, {encoding: 'utf-8'});
-  
-  return data
-    .split("\n")
-    .slice(0, -1)
-    .map(line => {
-      // replace consecutive tabs with single ; then split
-      const [state, exp, srl, _, subject] = line.replace(/\t+/g, ";").split(";");
-
-      // TODO: properly parse X.500 DN?
-      const name = subject.match(/\/CN=(\w+)/)[1];
-      const expires = moment(exp, ASN_1_DATE).toJSON();
-      const serial = parseInt(srl);
-
-      return {state, subject, name, expires, serial};
-    })
-    .filter(c => c.name != 'server');
+  return listCerts(indexFile);
 }
 
 
@@ -194,6 +187,38 @@ exports.LoadCerts = async (config, name) => {
   const ca = await readFile(caPath, {encoding: 'utf-8'});
 
   return {privateKey, certificate, dh, ca};
+}
+
+
+const certExists = async (indexFile, name) => {
+  const certs = await listCerts(indexFile);
+  const existing = certs.filter(c => 
+    c.name === name && c.state === 'V' && !c.isExpired
+  );
+  return existing.length > 0;
+}
+
+
+const listCerts = async (indexFile) => {
+  const data = await readFile(indexFile, {encoding: 'utf-8'});
+  const now = moment();
+
+  return data
+    .split("\n")
+    .slice(0, -1)
+    .map(line => {
+      // replace consecutive tabs with single ; then split
+      const [state, exp, srl, _, subject] = line.replace(/\t+/g, ";").split(";");
+
+      // TODO: properly parse X.500 DN?
+      const name = subject.match(/\/CN=(\w+)/)[1];
+      const expires = moment(exp, ASN_1_DATE);
+      const serial = parseInt(srl);
+      const isExpired = expires.isBefore(now);
+
+      return {state, subject, name, expires, isExpired, serial};
+    })
+    .filter(c => c.name != 'server');
 }
 
 

@@ -28,3 +28,11 @@ body {
   padding-right: 7px;
   vertical-align: middle;
 }
+
+.pwok {
+  color: green;
+}
+
+.pwnok {
+  color: red;
+}

@@ -10,11 +10,10 @@
   <div class="row" id="settings-form-container">
     <div class="col-md-6">
       <div>
-        <h1>OpenVPN Config</h1>
+        <h1>OpenVPN Config Generator</h1>
         <p>
           Select endpoint to generate the config for and optionally provide a passphrase below.
-          You will be able to download the generated config file at any time, however, the 
-          passphrase cannot be retrieved later.
+          Please note that the passphrase cannot be retrieved later.
         </p>
       </div>
       <div>
@@ -36,7 +35,12 @@
 
           <div class="form-group">
             <label for="pass">Passphrase</label>
-            <input type="password" class="form-control" id="input-password" placeholder="Passphrase">
+            <div class="input-group">
+              <input type="password" class="form-control" id="input-password" placeholder="Passphrase">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" id="generate-password">Generate</button>
+              </span>
+            </div>
             <span id="password-strength" class="help-block"></span>
           </div>
 
@@ -59,4 +63,6 @@
   </div>
 
 </div>
-<script src="/assets/app.js" ></script>
+<script src="/assets/prototype.js"></script>
+<script src="/assets/pwgen.js"></script>
+<script src="/assets/app.js"></script>
