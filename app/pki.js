@@ -16,7 +16,7 @@ const ASN_1_DATE = 'YYMMDDHHmmss[Z]';
 
 /**
  * Generate client certificate and certificate key for given name. Optionally encrypt the key with
- * a given passphrase.
+ * a given passwd.
  *
  * This function is using a file-based locking mechanism - only one certificate can be generated at
  * any given time. Issued certs are registered in index.txt, aiming to be compatible with EasyRSA's
@@ -25,13 +25,15 @@ const ASN_1_DATE = 'YYMMDDHHmmss[Z]';
  * This is assumed to be sufficiently robust for a small-scale deployment, for larger system a
  * database-backed solution would likely be a better solution.
  */
-exports.MkCert = async (config, endpointName, name, passphrase = null) => {
-  const paths = certPaths(pkiPath, cn);
+exports.MkCert = async (config, endpointName, name, passwd=null) => {
+  const pkiPath = config.pki.path;
+  const paths = certPaths(pkiPath, name);
+
   const {cacert, cakey} = config.pki;
   const opensslConf = config.openssl.config;
   const keySize = config.endpoints[endpointName].keysize;
 
-  await genReq(name, keySize, opensslConf, paths);
+  await genReq(name, keySize, opensslConf, passwd, paths);
   await signReq(name, opensslConf, paths);
 
   return paths;
@@ -41,17 +43,25 @@ exports.MkCert = async (config, endpointName, name, passphrase = null) => {
 /**
  * Generates an OpenSSL certificate signing request
  */
-const genReq = async (cn, keySize, opensslConf, {pkiPath, keyPath, reqPath}) => {
+const genReq = async (cn, keySize, opensslConf, passwd, {pkiPath, keyPath, reqPath}) => {
+  const env = {};
   const args = ['req', '-utf8', '-new',
     '-newkey', `rsa:${keySize}`,
     '-config', opensslConf,
     '-keyout', keyPath,
     '-out', reqPath,
-    '-nodes', // no password 
     '-batch'
   ];
-  
-  await execOpensslCmd(args, pkiPath, cn);
+
+  if (passwd && passwd.length > 0) {
+    // set password via env, avoid exposing it in the logs (still not really save)
+    args.push('-passout', 'env:MYPASSWD');
+    env.MYPASSWD = passwd;
+  } else {
+    args.push('-nodes');
+  }
+
+  await execOpensslCmd(args, pkiPath, cn, env);
   
   console.log('Key written to', keyPath);
   console.log('Req written to', reqPath);
@@ -82,29 +92,29 @@ const signReq = async (cn, opensslConf, {pkiPath, reqPath, certPath}) => {
  * @param {*string} pkiPath path to pki initalized by easysa
  * @param {*string} cn common name of the certificate to work with
  */
-const execOpensslCmd = (args, pkiPath, cn) => {
+const execOpensslCmd = (args, pkiPath, cn, env={}) => {
   const cmd = '/usr/bin/openssl';
+  // merge default env and env from params (params take precedence)
+  const optEnv = Object.assign({
+    EASYRSA_PKI: pkiPath,
+    EASYRSA_CERT_EXPIRE: '3650',
+    EASYRSA_CRL_DAYS: '180',
+    EASYRSA_DIGEST: 'sha256',
+    EASYRSA_KEY_SIZE: '2048',
+    EASYRSA_DN: 'cn_only',
+    EASYRSA_REQ_CN: cn,
+    EASYRSA_REQ_COUNTRY: 'US',
+    EASYRSA_REQ_PROVINCE: 'California',
+    EASYRSA_REQ_CITY: 'San Francisco',
+    EASYRSA_REQ_ORG: 'Copyleft Certificate Co',
+    EASYRSA_REQ_OU: 'My Organizational Unit',
+    EASYRSA_REQ_EMAIL: 'me@example.net',
+  }, env);
 
   console.log('Executing',cmd,args.join(' '));
 
   return new Promise((resolve, reject) => {
-    const opts = {
-      env: {
-        EASYRSA_PKI: pkiPath,
-        EASYRSA_CERT_EXPIRE: '3650',
-        EASYRSA_CRL_DAYS: '180',
-        EASYRSA_DIGEST: 'sha256',
-        EASYRSA_KEY_SIZE: '2048',
-        EASYRSA_DN: 'cn_only',
-        EASYRSA_REQ_CN: cn,
-        EASYRSA_REQ_COUNTRY: 'US',
-        EASYRSA_REQ_PROVINCE: 'California',
-        EASYRSA_REQ_CITY: 'San Francisco',
-        EASYRSA_REQ_ORG: 'Copyleft Certificate Co',
-        EASYRSA_REQ_OU: 'My Organizational Unit',
-        EASYRSA_REQ_EMAIL: 'me@example.net',
-      }
-    };
+    const opts = {env: optEnv};
     const cp = spawn(cmd, args, opts);
 
     const parts = [];

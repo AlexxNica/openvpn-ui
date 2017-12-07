@@ -60,8 +60,6 @@ router.post('/certs', async (req, res, next) => {
 
   try {
     await MkCert(config, endpoint, name, passphrase);
-    // await writeCerts(config.pki.path, name, certs);
-
     res.status(200).json({
       message: 'OK',
       configPath: `/configs/${endpoint}/${name}.ovpn`
